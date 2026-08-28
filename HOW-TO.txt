@@ -1,0 +1,11 @@
+ADORN OWNER PANEL
+
+1. Upload both index.html and admin.html to the same GitHub Pages repository.
+2. Open your normal website.
+3. Scroll to the bottom and tap OWNER.
+4. Temporary owner password: AdornOwner2026!
+5. In the panel you can add products, choose product images, change names/descriptions/prices, delete products, and save them.
+
+IMPORTANT:
+This version is a browser-side owner panel. It is useful for editing on your own device, but it is NOT true server-side security and changes are saved only in that browser. Anyone who can inspect the public source could bypass a client-side password.
+For a real secure owner login that publishes changes for every visitor, move the editor to a backend such as Supabase/Firebase/Netlify CMS and keep the public GitHub Pages site as the storefront.
