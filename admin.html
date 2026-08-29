@@ -1,11 +1,120 @@
-﻿<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adorn Owner</title><style>body{margin:0;background:#050505;color:#eee;font-family:Arial,sans-serif}.wrap{max-width:900px;margin:auto;padding:30px 20px}.box,.item{border:1px solid #292929;padding:20px;margin:14px 0;background:#0b0b0b}input,button{width:100%;padding:13px;margin:7px 0;background:#111;color:#fff;border:1px solid #444}button{cursor:pointer;background:#eee;color:#000}.danger{background:#211;color:#fff}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.item img{width:120px;height:120px;object-fit:cover;float:right}.muted{color:#888;font-size:13px}@media(max-width:650px){.row{grid-template-columns:1fr}.item img{float:none}}</style></head><body><div class="wrap"><a href="index.html">← Back to store</a><h1>Owner Panel</h1><div id="login" class="box"><h2>Owner Login</h2><p class="muted">Use the owner email/password you created in Supabase Authentication.</p><input id="email" type="email" placeholder="Owner email"><input id="password" type="password" placeholder="Password"><button id="loginBtn">Login</button><p id="loginMsg" class="muted"></p></div><div id="panel" style="display:none"><div class="box"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>Add product</h2><button id="logout" style="max-width:120px">Logout</button></div><input id="name" placeholder="Product name"><input id="description" placeholder="Description"><input id="price" placeholder="Price e.g. EGP 950"><input id="image" type="file" accept="image/*"><button id="addBtn">Add Product</button><p id="addMsg" class="muted"></p></div><h2>Your products</h2><div id="list"></div></div></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<base href="/Adorn/">
+<title>Adorn Owner</title>
+<style>
+  body{margin:0;background:#050505;color:#eee;font-family:Arial,sans-serif}
+  .wrap{max-width:900px;margin:auto;padding:30px 20px}
+  .box,.item{border:1px solid #292929;padding:20px;margin:14px 0;background:#0b0b0b}
+  input,button{width:100%;padding:13px;margin:7px 0;background:#111;color:#fff;border:1px solid #444}
+  button{cursor:pointer;background:#eee;color:#000}
+  .danger{background:#211;color:#fff}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .item img{width:120px;height:120px;object-fit:cover;float:right}
+  .muted{color:#888;font-size:13px}
+  @media(max-width:650px){.row{grid-template-columns:1fr}.item img{float:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html">← Back to store</a>
+  <h1>Owner Panel</h1>
+  
+  <div id="login" class="box">
+    <h2>Owner Login</h2>
+    <p class="muted">Use the owner email/password you created in Supabase Authentication.</p>
+    <input id="email" type="email" placeholder="Owner email">
+    <input id="password" type="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+    <p id="loginMsg" class="muted"></p>
+  </div>
+  
+  <div id="panel" style="display:none">
+    <div class="box">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <h2>Add product</h2>
+        <button id="logout" style="max-width:120px">Logout</button>
+      </div>
+      <input id="name" placeholder="Product name">
+      <input id="description" placeholder="Description">
+      <input id="price" placeholder="Price e.g. EGP 950">
+      <input id="image" type="file" accept="image/*">
+      <button id="addBtn">Add Product</button>
+      <p id="addMsg" class="muted"></p>
+    </div>
+    <h2>Your products</h2>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.5net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
 const cfg=window.ADORN_CONFIG||{};let db;
 function configured(){return cfg.SUPABASE_URL&&!cfg.SUPABASE_URL.includes('PASTE_')&&cfg.SUPABASE_ANON_KEY&&!cfg.SUPABASE_ANON_KEY.includes('PASTE_')&&cfg.OWNER_EMAIL&&!cfg.OWNER_EMAIL.includes('PASTE_')}
 if(configured()) db=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY); else document.getElementById('loginMsg').textContent='First configure config.js.';
-async function check(){if(!db)return;const {data:{session}}=await db.auth.getSession();if(session&&session.user.email.toLowerCase()===cfg.OWNER_EMAIL.toLowerCase()){document.getElementById('login').style.display='none';document.getElementById('panel').style.display='block';load();}else if(session){await db.auth.signOut();}}
-loginBtn.onclick=async()=>{if(!db)return;loginMsg.textContent='';const {error}=await db.auth.signInWithPassword({email:email.value,password:password.value});if(error){loginMsg.textContent=error.message;return}check()};
+
+async function check(){
+  if(!db)return;
+  const {data:{session}}=await db.auth.getSession();
+  if(session&&session.user.email.toLowerCase()===cfg.OWNER_EMAIL.toLowerCase()){
+    document.getElementById('login').style.display='none';
+    document.getElementById('panel').style.display='block';
+    load();
+  }else if(session){await db.auth.signOut();}
+}
+
+loginBtn.onclick=async()=>{
+  if(!db)return;
+  loginMsg.textContent='';
+  const {error}=await db.auth.signInWithPassword({email:email.value,password:password.value});
+  if(error){loginMsg.textContent=error.message;return}
+  check();
+};
+
 logout.onclick=async()=>{await db.auth.signOut();location.reload()};
-async function load(){const {data,error}=await db.from('products').select('*').order('created_at',{ascending:true});if(error){list.innerHTML='<p class="muted">'+error.message+'</p>';return}list.innerHTML=(data||[]).map(p=>`<div class="item">${p.image_url?`<img src="${esc(p.image_url)}">`:''}<input data-id="${p.id}" class="n" value="${esc(p.name)}"><input data-id="${p.id}" class="d" value="${esc(p.description||'')}"><input data-id="${p.id}" class="p" value="${esc(p.price||'')}"><button onclick="save('${p.id}')">Save</button><button class="danger" onclick="removeProduct('${p.id}')">Delete</button><div style="clear:both"></div></div>`).join('')||'<p class="muted">No products yet.</p>'}
-addBtn.onclick=async()=>{addMsg.textContent='';if(!image.files[0]){addMsg.textContent='Choose a product image.';return}const f=image.files[0];const ext=(f.name.split('.').pop()||'jpg').toLowerCase();const path=crypto.randomUUID()+'.'+ext;const up=await db.storage.from('product-images').upload(path,f,{upsert:false});if(up.error){addMsg.textContent=up.error.message;return}const pub=db.storage.from('product-images').getPublicUrl(path).data.publicUrl;const ins=await db.from('products').insert({name:name.value,description:description.value,price:price.value,image_url:pub,storage_path:path});if(ins.error){await db.storage.from('product-images').remove([path]);addMsg.textContent=ins.error.message;return}name.value=description.value=price.value='';image.value='';addMsg.textContent='Added.';load()};
-window.save=async(id)=>{const n=document.querySelector('.n[data-id="'+id+'"]').value,d=document.querySelector('.d[data-id="'+id+'"]')?.value||'',p=document.querySelector('.p[data-id="'+id+'"]').value;const {error}=await db.from('products').update({name:n,description:d,price:p}).eq('id',id);if(error)alert(error.message);else load()};window.removeProduct=async(id)=>{if(!confirm('Delete this product?'))return;const {data}=await db.from('products').select('storage_path').eq('id',id).single();const {error}=await db.from('products').delete().eq('id',id);if(error){alert(error.message);return}if(data?.storage_path)await db.storage.from('product-images').remove([data.storage_path]);load()};function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]) )}check();
-</script></body></html>
+
+async function load(){
+  const {data,error}=await db.from('products').select('*').order('created_at',{ascending:true});
+  if(error){list.innerHTML='<p class="muted">'+error.message+'</p>';return}
+  list.innerHTML=(data||[]).map(p=>`<div class="item">${p.image_url?`<img src="${esc(p.image_url)}">`:''}<input data-id="${p.id}" class="n" value="${esc(p.name)}"><input data-id="${p.id}" class="d" value="${esc(p.description||'')}"><input data-id="${p.id}" class="p" value="${esc(p.price||'')}"><button onclick="save('${p.id}')">Save</button><button class="danger" onclick="removeProduct('${p.id}')">Delete</button><div style="clear:both"></div></div>`).join('')||'<p class="muted">No products yet.</p>';
+}
+
+addBtn.onclick=async()=>{
+  addMsg.textContent='';
+  if(!image.files[0]){addMsg.textContent='Choose a product image.';return}
+  const f=image.files[0];
+  const ext=(f.name.split('.').pop()||'jpg').toLowerCase();
+  const path=crypto.randomUUID()+'.'+ext;
+  const up=await db.storage.from('product-images').upload(path,f,{upsert:false});
+  if(up.error){addMsg.textContent=up.error.message;return}
+  const pub=db.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+  const ins=await db.from('products').insert({name:name.value,description:description.value,price:price.value,image_url:pub,storage_path:path});
+  if(ins.error){await db.storage.from('product-images').remove([path]);addMsg.textContent=ins.error.message;return}
+  name.value=description.value=price.value='';image.value='';addMsg.textContent='Added.';
+  load();
+};
+
+window.save=async(id)=>{
+  const n=document.querySelector('.n[data-id="'+id+'"]').value,d=document.querySelector('.d[data-id="'+id+'"]')?.value||'',p=document.querySelector('.p[data-id="'+id+'"]').value;
+  const {error}=await db.from('products').update({name:n,description:d,price:p}).eq('id',id);
+  if(error)alert(error.message);else load();
+};
+
+window.removeProduct=async(id)=>{
+  if(!confirm('Delete this product?'))return;
+  const {data}=await db.from('products').select('storage_path').eq('id',id).single();
+  const {error}=await db.from('products').delete().eq('id',id);
+  if(error){alert(error.message);return}
+  if(data?.storage_path)await db.storage.from('product-images').remove([data.storage_path]);
+  load();
+};
+
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+check();
+</script>
+</body>
+</html>
