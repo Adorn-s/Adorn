@@ -1,0 +1,28 @@
+ADORN OWNER LOGIN — SETUP
+
+What this version does:
+- Visitors can only view products.
+- Owner logs in with Supabase email/password.
+- Owner can add product images, names, descriptions and prices.
+- Products and images are stored centrally, so every visitor sees the same products.
+- RLS policies prevent non-owner users from changing products.
+
+ONE-TIME SETUP
+1. Create a Supabase project at https://supabase.com/ .
+2. In Supabase, open SQL Editor.
+3. Open supabase-setup.sql and replace every YOUR_EMAIL@example.com with the exact email you will use as Owner.
+4. Run the SQL.
+5. Go to Authentication -> Users -> Add user. Create the Owner email and a strong password. Do NOT share the password.
+6. Go to Storage -> New bucket. Name it: product-images. Set Public bucket = ON.
+7. Open Project Settings -> API. Copy:
+   - Project URL
+   - anon/public key
+8. Open config.js and replace:
+   PASTE_YOUR_SUPABASE_PROJECT_URL_HERE
+   PASTE_YOUR_SUPABASE_ANON_KEY_HERE
+   PASTE_YOUR_OWNER_EMAIL_HERE
+9. Upload index.html, admin.html and config.js to the root of your GitHub repository. Keep them together.
+10. Open your GitHub Pages site. Visitors use the normal page. You use the Owner link at the bottom.
+
+SECURITY NOTE
+The anon/public key is safe to put in a browser app. Never put a Supabase service_role key in GitHub or config.js. The real protection is the database/storage RLS policies in supabase-setup.sql.
